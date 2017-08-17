@@ -16,14 +16,18 @@ stream.on('tweet',tweetedAt);
 function tweetedAt(tweet){
 	if(tweet){
 		var inreply = tweet['text'];
+		
+		//Check that tweet is aimed at GarethTweetBot.
 		if(inreply!= null && inreply.includes('GarethTweetBot')){
 			console.log("You were tweeted at.")
 			console.log(tweet['text']);
+			
+			//Get Metadata of tweet.
 			var time = new Date(tweet.created_at);
 			var time_str = time.toLocaleString('en-GB');
 			var screen_name = tweet['user']['screen_name'];
 		
-
+			//Check if reminder tweet.
 			if(tweet['text'].includes("remind") || tweet['text'].includes("Remind")){
 				output =  sched.parseText(tweet['text']);
 				if((typeof output) == "string"){
@@ -32,8 +36,10 @@ function tweetedAt(tweet){
 						return;
 					}
 				}
-				console.log("Gets to tweeting "+output);
+				//Send the tweet reply.
+				console.log("Tweet delay = "+output+ " milliseconds");
 				setTimeout(function(){
+					console.log("Reminding @"+screen_name);
 					sendTweet("Reminding @"+ screen_name+ ", at " +time_str);
 				}, output);
 			}
