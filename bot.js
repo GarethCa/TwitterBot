@@ -3,6 +3,7 @@ console.log("Starting up bot...\n");
 var Twit = require('twit');
 var config = require('./config')
 var T = new Twit(config);
+var sched = require('./scheduling');
 
 //Set up the streams.
 var stream = T.stream('user');
@@ -21,7 +22,21 @@ function tweetedAt(tweet){
 			var time = new Date(tweet.created_at);
 			var time_str = time.toLocaleString('en-GB');
 			var screen_name = tweet['user']['screen_name'];
-			sendTweet("I was mentioned by @"+screen_name +" at " +time_str);
+		
+
+			if(tweet['text'].includes("remind") || tweet['text'].includes("Remind")){
+				output =  sched.parseText(tweet['text']);
+				if((typeof output) == "string"){
+					if(output.includes("Failure")){
+						sendTweet("Failure at "+ time_str);
+						return;
+					}
+				}
+				console.log("Gets to tweeting "+output);
+				setTimeout(function(){
+					sendTweet("Reminding @"+ screen_name+ ", at " +time_str);
+				}, output);
+			}
 		}
 	}
 }
@@ -31,7 +46,8 @@ function followed(event){
 	console.log("You were followed.");
 	var name = event.source.name;
 	var screenName = event.source.screen_name;
-	var time = Date.parse(event.target['created_at']);
+	var d = new Date();
+	var time = d;
 	var time_str = time.toLocaleString('en-GB');
 	sendTweet("Hey @"+screenName+" thanks for the follow, I'm a bot. "+time_str);
 }
